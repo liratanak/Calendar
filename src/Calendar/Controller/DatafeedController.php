@@ -12,7 +12,7 @@ class DatafeedController extends AbstractActionController {
 
 		$events = $this->getEntityManager()->getRepository('Calendar\Entity\Jqcalendar')->findAll();
 
-		$allEvents = array('events'=>array());
+		$allEvents = array('events' => array());
 
 		foreach ($events as $e) {
 
@@ -43,7 +43,7 @@ class DatafeedController extends AbstractActionController {
 
 		$this->getEntityManager()->remove($this->getEntityManager()->find('Calendar\Entity\Jqcalendar', $postData->calendarId));
 		$this->getEntityManager()->flush();
-		
+
 		$data = '{"IsSuccess":true,"Msg":"Succefully"}';
 		$this->layout('layout/blank');
 		return new ViewModel(array(
@@ -63,6 +63,54 @@ class DatafeedController extends AbstractActionController {
 
 		return new ViewModel(array(
 								'event' => $event,
+						));
+	}
+
+	public function addAction() {
+		$data = '{"IsSuccess":false,"Msg":"Fail"}';
+		if ($this->getRequest()->isPost()) {
+			$postData = $this->getRequest()->getPost();
+			$event = new \Calendar\Entity\Jqcalendar();
+			$event->setSubject($postData->CalendarTitle);
+			$event->setStarttime(\DateTime::createFromFormat('m/d/Y H:i', $postData->CalendarStartTime));
+
+			$event->setEndtime(\DateTime::createFromFormat('m/d/Y H:i', $postData->CalendarEndTime));
+			if ($postData->IsAllDayEvent) {
+				$event->setIsalldayevent($postData->IsAllDayEvent);
+			} else {
+				$event->setIsalldayevent(0);
+			}
+
+			$this->getEntityManager()->persist($event);
+			$this->getEntityManager()->flush();
+
+			$data = '{"IsSuccess":true,"Msg":"Succefully","Data":' . $event->getId() . '}';
+		}
+		$this->layout('layout/blank');
+		return new ViewModel(array(
+								'data' => $data,
+						));
+	}
+
+	public function updateAction() {
+		$data = '{"IsSuccess":false,"Msg":"Fail"}';
+		if ($this->getRequest()->isPost()) {
+			$postData = $this->getRequest()->getPost();
+
+			$event = $this->getEntityManager()->find('Calendar\Entity\Jqcalendar', $postData->calendarId);
+
+			if (NULL != $event) {
+				$event->setStarttime(\DateTime::createFromFormat('m/d/Y H:i', $postData->CalendarStartTime));
+				$event->setEndtime(\DateTime::createFromFormat('m/d/Y H:i', $postData->CalendarEndTime));
+				$this->getEntityManager()->persist($event);
+				$this->getEntityManager()->flush();
+
+				$data = '{"IsSuccess":true,"Msg":"Succefully"}';
+			}
+		}
+		$this->layout('layout/blank');
+		return new ViewModel(array(
+								'data' => $data,
 						));
 	}
 
