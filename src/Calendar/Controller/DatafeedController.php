@@ -9,14 +9,27 @@ class DatafeedController extends AbstractActionController {
 
 	public function listAction() {
 		$data = NULL;
-
-		$events = $this->getEntityManager()->getRepository('Calendar\Entity\Jqcalendar')->findAll();
-
 		$allEvents = array('events' => array());
 
-		foreach ($events as $e) {
+		if ($this->getRequest()->isPost()) {
 
-			$allEvents['events'][] = array(
+			$postData = $this->getRequest()->getPost();
+			$start = strtotime($postData->showdate);
+			$endDateForShow = 0;
+
+			if ('day' == $postData->viewtype) {
+				$endDateForShow = 1 * 24 * 60 * 60 * 1000;
+			} else if ('week' == $postData->viewtype) {
+				$endDateForShow = 7 * 24 * 60 * 60 * 1000;
+			} else if ('month' == $postData->viewtype) {
+				$endDateForShow = 31 * 24 * 60 * 60 * 1000;
+			}
+
+			$events = $this->getEntityManager()->getRepository('Calendar\Entity\Jqcalendar')->findByRange($start, (intval($start) + $endDateForShow));
+
+			foreach ($events as $e) {
+
+				$allEvents['events'][] = array(
 					$e->getId() . '',
 					$e->getSubject(),
 					date('m/d/Y H:i', date_timestamp_get($e->getStarttime())),
@@ -25,17 +38,19 @@ class DatafeedController extends AbstractActionController {
 					0,
 					0,
 					$e->getColor(),
-					1, //EDITABLE
+					0, //EDITABLE
 					$e->getLocation(),
 					null,
-			);
-		}
+				);
+			}
 //		$allEvents['events']['error'] = NULL;
+		}
+
 
 		$this->layout('layout/blank');
 		return new ViewModel(array(
-								'data' => json_encode($allEvents),
-						));
+					'data' => json_encode($allEvents),
+				));
 	}
 
 	public function removeAction() {
@@ -47,8 +62,8 @@ class DatafeedController extends AbstractActionController {
 		$data = '{"IsSuccess":true,"Msg":"Succefully"}';
 		$this->layout('layout/blank');
 		return new ViewModel(array(
-								'data' => $data,
-						));
+					'data' => $data,
+				));
 	}
 
 	public function editAction() {
@@ -62,8 +77,8 @@ class DatafeedController extends AbstractActionController {
 
 
 		return new ViewModel(array(
-								'event' => $event,
-						));
+					'event' => $event,
+				));
 	}
 
 	public function addAction() {
@@ -88,8 +103,8 @@ class DatafeedController extends AbstractActionController {
 		}
 		$this->layout('layout/blank');
 		return new ViewModel(array(
-								'data' => $data,
-						));
+					'data' => $data,
+				));
 	}
 
 	public function updateAction() {
@@ -110,8 +125,8 @@ class DatafeedController extends AbstractActionController {
 		}
 		$this->layout('layout/blank');
 		return new ViewModel(array(
-								'data' => $data,
-						));
+					'data' => $data,
+				));
 	}
 
 	public function addDetailsAction() {
@@ -152,8 +167,8 @@ class DatafeedController extends AbstractActionController {
 		}
 		$this->layout('layout/blank');
 		return new ViewModel(array(
-								'data' => $data,
-						));
+					'data' => $data,
+				));
 	}
 
 	/**
@@ -172,7 +187,7 @@ class DatafeedController extends AbstractActionController {
 	public function getEntityManager() {
 		if (null === $this->em) {
 			$this->em = $this->getServiceLocator()
-							->get('doctrine.entitymanager.orm_default');
+					->get('doctrine.entitymanager.orm_default');
 		}
 		return $this->em;
 	}
