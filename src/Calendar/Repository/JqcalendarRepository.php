@@ -10,6 +10,10 @@ class JqcalendarRepository extends EntityRepository {
 		$em = $this->getEntityManager();
 		$query = $em->createQueryBuilder();
 
+		//DQL
+		
+		//SELECT j FROM Calendar\Entity\Jqcalendar as j WERE 
+		
 		$query->select('j')
 				->from('Calendar\Entity\Jqcalendar', 'j')
 				->where('j.starttime >= :start')
